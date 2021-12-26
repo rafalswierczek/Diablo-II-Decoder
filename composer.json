@@ -1,0 +1,26 @@
+{
+    "name": "rafalswierczek/diablo-ii-decoder",
+    "description": "Diablo II decoder for various files like .txt .dc6 .mpq .tbl",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "rafalswierczek\\D2Decoder\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "rafalswierczek\\D2Decoder\\TestUnit\\": "tests/Unit/",
+            "rafalswierczek\\D2Decoder\\TestIntegration\\": "tests/Integration/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Rafał Świerczek",
+            "email": "swierczekraf@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    }
+}
