@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace rafalswierczek\D2Decoder\Txt\Iterator;
 
+use rafalswierczek\D2Decoder\Txt\Exception\InvalidValuesOfColumnToSkipException;
+
 final class SkipColumnsHandler
 {
-    private array $columnValues;
+    private array $columnValuesData;
 
     /**
-     * @param array $columnValues ['colName1' => ['Expansion', 'some value'], 'colName2' => ['1', '256', '1024']]
+     * @param array $columnValuesData ['colName1' => ['Expansion', 'some value'], 'colName2' => ['1', '256', '1024']]
      */
-    public function __construct(array $columnValues = [])
+    public function __construct(array $columnValuesData = [])
     {
-        $this->columnValues = $columnValues;
+        $this->validateColumnValuesData($columnValuesData);
+
+        $this->columnValuesData = $columnValuesData;
     }
 
     /**
@@ -23,11 +27,9 @@ final class SkipColumnsHandler
      */
     public function addColumnDataToSkip(string $columnName, string ...$columnValues): void
     {
-        if (empty($columnValues)) {
-            throw new \RuntimeException('At least one value must be specified');
-        }
+        $this->validateAddingColumnValuesData($columnName, $columnValues);
 
-        $this->columnValues[$columnName] = $columnValues;
+        $this->columnValuesData[$columnName] = $columnValues;
     }
 
     /**
@@ -35,6 +37,50 @@ final class SkipColumnsHandler
      */
     public function getAllColumnValues(): array
     {
-        return $this->columnValues;
+        if (empty($this->columnValuesData)) {
+            throw new \RuntimeException('Found empty column values. You must specify it through constructor or addColumnDataToSkip method!');
+        }
+
+        return $this->columnValuesData;
+    }
+
+    /**
+     * @throws InvalidValuesOfColumnToSkipException 
+     */
+    private function validateColumnValuesData(array $columnValuesData)
+    {
+        if (!empty($columnValuesData)) {
+            foreach ($columnValuesData as $columnName => $columnValues) {
+                if (!is_array($columnValues)) {
+                    throw new InvalidValuesOfColumnToSkipException(sprintf('Found invalid values to skip type for column name "%s". Expected array of strings', $columnName));
+                } elseif (empty($columnValues)) {
+                    throw new InvalidValuesOfColumnToSkipException(sprintf('Found no values to skip for column name "%s"', $columnName));
+                } else {
+                    foreach ($columnValues as $columnValue) {
+                        if (empty($columnValue)) {
+                            throw new InvalidValuesOfColumnToSkipException(sprintf('Found empty value to skip for column name "%s"', $columnName));
+                        } elseif (!is_string($columnValue)) {
+                            throw new InvalidValuesOfColumnToSkipException(sprintf('Found invalid type of value to skip for column name "%s". Expected a string', $columnName));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @throws InvalidValuesOfColumnToSkipException 
+     */
+    private function validateAddingColumnValuesData(string $columnName, array $columnValues)
+    {
+        if (empty($columnValues)) {
+            throw new InvalidValuesOfColumnToSkipException(sprintf('Found no values to skip for column name "%s"', $columnName));
+        }
+
+        foreach ($columnValues as $columnValue) {
+            if (empty($columnValue)) {
+                throw new InvalidValuesOfColumnToSkipException(sprintf('Found empty value to skip for column name "%s"', $columnName));
+            }
+        }
     }
 }
