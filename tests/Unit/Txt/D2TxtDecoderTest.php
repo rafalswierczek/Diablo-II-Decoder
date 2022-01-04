@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class D2TxtDecoderTest extends TestCase
 {
-    public function testD2TxtDecoderThrowsExceptionWhenInvalidPath()
+    public function testCreateD2TxtDecoderThrowsExceptionWhenInvalidPath()
     {
         $this->expectException(NotReadableTxtFileException::class);
         
