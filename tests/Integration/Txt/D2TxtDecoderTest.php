@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace rafalswierczek\D2Decoder\TestIntegration\Txt;
 
+use rafalswierczek\D2Decoder\Txt\Exception\InvalidTxtFileException;
 use rafalswierczek\D2Decoder\Txt\D2TxtDecoder;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use rafalswierczek\D2Decoder\Txt\Exception\InvalidEndOfLineException;
 
 class D2TxtDecoderTest extends TestCase
 {
@@ -16,9 +19,54 @@ class D2TxtDecoderTest extends TestCase
         $this->filePath = dirname(dirname(__DIR__)).'/resources/Weapons.txt';
     }
 
-    public function testDecodeWeaponsFirstRowAndReturnArrayOfEveryColumn()
+    public function testDecodeFirstRowAndReturnArrayOfEveryColumn()
     {
-        $expectedHeaderRowArray = [
+        $headerRowData = $this->getHeaderRow();
+
+        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
+        
+        $this->assertEquals($headerRowData['row'], $d2TxtDecoder->decodeRow());
+    }
+
+    public function testDecodeRowAndReturnArrayOfEveryColumn()
+    {
+        $exampleRowData = $this->getExampleRow();
+
+        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
+        
+        $this->assertEquals($exampleRowData['row'], $d2TxtDecoder->decodeRow($exampleRowData['rowNumber']));
+    }
+
+    public function testDecodeRowForEmptyFile()
+    {
+        $this->filePath = dirname(dirname(__DIR__)).'/resources/WeaponsEmpty.txt';
+
+        $rowNumber = 33;
+
+        $this->expectException(InvalidTxtFileException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Found no enough data to read at row 1 of %d specified rows',
+            $rowNumber
+        ));
+
+        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
+        $d2TxtDecoder->decodeRow($rowNumber);
+    }
+
+    public function testDecodeRowWhenSeparatorAtTheEndOfLine()
+    {
+        $this->filePath = dirname(dirname(__DIR__)).'/resources/WeaponsSeparatorAtEol.txt';
+
+        $this->expectException(InvalidTxtFileException::class);
+        $this->expectExceptionMessage('File format is invalid because there is no value after separator at row 1');
+
+        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
+        $d2TxtDecoder->decodeRow();
+    }
+
+    private function getHeaderRow(): array
+    {
+        return ['rowNumber' => 1, 'row' => [
             'name',
             'type',
             'type2',
@@ -185,17 +233,12 @@ class D2TxtDecoderTest extends TestCase
             'HellUpgrade',
             'Nameable',
             'PermStoreItem'
-        ];
-
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
-        
-        $this->assertEquals($expectedHeaderRowArray, $d2TxtDecoder->decodeRow());
+        ]];
     }
 
-    public function testDecodeWeaponsSpecificRowAndReturnArrayOfEveryColumn()
+    private function getExampleRow(): array
     {
-        $specificRowIndex = 51;
-        $expectedRowArray = [
+        return ['rowNumber' => 51, 'row' => [
             'Short Spear',
              'jave',
              '',
@@ -362,10 +405,6 @@ class D2TxtDecoderTest extends TestCase
              'tsp',
              '1',
              '0'
-        ];
-
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
-        
-        $this->assertEquals($expectedRowArray, $d2TxtDecoder->decodeRow($specificRowIndex));
+        ]];
     }
 }
