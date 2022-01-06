@@ -7,8 +7,6 @@ namespace rafalswierczek\D2Decoder\TestIntegration\Txt;
 use rafalswierczek\D2Decoder\Txt\Exception\InvalidTxtFileException;
 use rafalswierczek\D2Decoder\Txt\D2TxtDecoder;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
-use rafalswierczek\D2Decoder\Txt\Exception\InvalidEndOfLineException;
 
 class D2TxtDecoderTest extends TestCase
 {
