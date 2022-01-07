@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+    php:
+        container_name: "d2decoder_php"
+        build:
+            context: "docker/php"
+        volumes:
+            - ./:/d2decoder
+            - ./docker/php/conf.d/php.ini:/usr/local/etc/php/conf.d/php.ini
+        working_dir: /d2decoder
