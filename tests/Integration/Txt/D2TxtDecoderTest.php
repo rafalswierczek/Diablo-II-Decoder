@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace rafalswierczek\D2Decoder\TestIntegration\Txt;
 
-use rafalswierczek\D2Decoder\Txt\Exception\InvalidTxtFileException;
+use rafalswierczek\D2Decoder\ByteHandler;
+use rafalswierczek\D2Decoder\Txt\Exception\{
+    InvalidTxtFileException,
+    NotReadableTxtFileException
+};
 use rafalswierczek\D2Decoder\Txt\D2TxtDecoder;
 use PHPUnit\Framework\TestCase;
 
@@ -17,11 +21,18 @@ class D2TxtDecoderTest extends TestCase
         $this->filePath = dirname(dirname(__DIR__)).'/resources/Weapons.txt';
     }
 
+    public function testCreateD2TxtDecoderThrowsExceptionWhenInvalidPath()
+    {
+        $this->expectException(NotReadableTxtFileException::class);
+        
+        new D2TxtDecoder('', new ByteHandler());
+    }
+
     public function testDecodeFirstRowAndReturnArrayOfEveryColumn()
     {
         $headerRowData = $this->getHeaderRow();
 
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
+        $d2TxtDecoder = new D2TxtDecoder($this->filePath, new ByteHandler());
         
         $this->assertEquals($headerRowData['row'], $d2TxtDecoder->decodeRow());
     }
@@ -30,7 +41,7 @@ class D2TxtDecoderTest extends TestCase
     {
         $exampleRowData = $this->getExampleRow();
 
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
+        $d2TxtDecoder = new D2TxtDecoder($this->filePath, new ByteHandler());
         
         $this->assertEquals($exampleRowData['row'], $d2TxtDecoder->decodeRow($exampleRowData['rowNumber']));
     }
@@ -47,7 +58,7 @@ class D2TxtDecoderTest extends TestCase
             $rowNumber
         ));
 
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
+        $d2TxtDecoder = new D2TxtDecoder($this->filePath, new ByteHandler());
         $d2TxtDecoder->decodeRow($rowNumber);
     }
 
@@ -58,7 +69,7 @@ class D2TxtDecoderTest extends TestCase
         $this->expectException(InvalidTxtFileException::class);
         $this->expectExceptionMessage('File format is invalid because there is no value after separator at row 1');
 
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath);
+        $d2TxtDecoder = new D2TxtDecoder($this->filePath, new ByteHandler());
         $d2TxtDecoder->decodeRow();
     }
 

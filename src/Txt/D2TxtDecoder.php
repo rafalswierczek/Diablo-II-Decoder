@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace rafalswierczek\D2Decoder\Txt;
 
+use rafalswierczek\D2Decoder\{ByteBag, ByteHandlerInterface};
 use rafalswierczek\D2Decoder\D2DecoderInterface;
 use rafalswierczek\D2Decoder\Txt\Exception\{
     NotReadableTxtFileException,
@@ -14,7 +15,7 @@ use rafalswierczek\D2Decoder\Txt\Exception\{
 
 class D2TxtDecoder implements D2DecoderInterface
 {
-    const EOL = [0x0D, 0x0A];
+    const EOL = ['CR' => 0x0D, 'LF' => 0x0A];
     const SEPARATOR = 0x09;
 
     private $fileHandle;
@@ -25,7 +26,7 @@ class D2TxtDecoder implements D2DecoderInterface
      * @throws NotReadableTxtFileException
      * @throws TxtFileCannotBeOpenedException
      */
-    public function __construct(string $filePath)
+    public function __construct(string $filePath, ByteHandlerInterface $byteHandler)
     {
         if (!is_readable($filePath)) {
             throw new NotReadableTxtFileException();
@@ -34,6 +35,8 @@ class D2TxtDecoder implements D2DecoderInterface
         if (false === $this->fileHandle = fopen($filePath, 'rb')) {
             throw new TxtFileCannotBeOpenedException();
         }
+
+        $this->byteHandler = $byteHandler;
     }
 
     /**
@@ -49,12 +52,12 @@ class D2TxtDecoder implements D2DecoderInterface
     {
         $rowElement = '';
         $rowArray = [];
-        $byteBag = new ByteBag(self::EOL[0], self::EOL[1], self::SEPARATOR);
+        $byteBag = new ByteBag($this->byteHandler, self::EOL['CR'], self::EOL['LF'], self::SEPARATOR);
 
         $this->throwIfRowNumberIsZeroOrLess($rowNumber);
 
         $this->movePointerToSpecificRow($rowNumber);
-        
+
         while (true) {
             $currentChar = fread($this->fileHandle, 1);
             
@@ -62,17 +65,18 @@ class D2TxtDecoder implements D2DecoderInterface
 
             $byteBag->setCurrentByte(hexdec(bin2hex($currentChar)));
             
-            if (!$this->isPointerAtTheEndOfLine($rowNumber, $byteBag)) {
-                if ($byteBag->getCsvSeparatorByte() !== $byteBag->getCurrentByte()) {
-                    $rowElement .= $byteBag->getCurrentByte();
+            if ($this->isPointerAtTheEndOfLine($rowNumber, $byteBag)) {
+                $rowArray[] = $rowElement;
+                break;
+            } else {
+                $currentByte = $byteBag->getCurrentByte();
+
+                if ($byteBag->getCsvSeparatorByte() !== $currentByte) {
+                    $rowElement .= $currentByte;
                 } else {
                     $rowArray[] = $rowElement;
                     $rowElement = '';
                 }
-            } else {
-                $rowArray[] = $rowElement;
-                fseek($this->fileHandle, 2, SEEK_CUR); // move to the next row
-                break;
             }
         }
 
@@ -89,19 +93,23 @@ class D2TxtDecoder implements D2DecoderInterface
      */
     public function isPointerAtTheEndOfLine(int $rowNumber, ByteBag $byteBag): bool
     {
-        if ($byteBag->getEndOfLineFirstByte() === $byteBag->getCurrentByte()) {
+        $currentByte = $byteBag->getCurrentByte();
+
+        if (
+            $byteBag->getEndOfLineFirstByte() === $currentByte ||
+            $byteBag->getEndOfLineSecondByte() === $currentByte
+        ) {
             $this->throwIfPreviousByteIsSeparator($byteBag->getCsvSeparatorByte(), $rowNumber);
 
-            $nextByte = fread($this->fileHandle, 1);
-
-            $this->throwIfSecondEolByteIsInvalid(
-                $nextByte,
-                $byteBag->getEndOfLineSecondByte(),
-                $byteBag->getEndOfLineSecondByteHexNotation(),
-                $rowNumber
-            );
-
-            fseek($this->fileHandle, -1, SEEK_CUR);
+            if ($byteBag->getEndOfLineFirstByte() === $currentByte) {
+                $nextByte = fread($this->fileHandle, 1);
+    
+                $this->throwIfSecondEolByteIsInvalid(
+                    $nextByte,
+                    $byteBag->getEndOfLineSecondByte(),
+                    $rowNumber
+                );
+            }
 
             return true;
         }
@@ -162,23 +170,22 @@ class D2TxtDecoder implements D2DecoderInterface
     private function throwIfSecondEolByteIsInvalid(
         bool|string $byteAfterFirstEolByte,
         string $eolSecondByte,
-        string $expectedEolSecondByteHexNotation,
         int $rowNumber
     ): void {
         if (false === $byteAfterFirstEolByte) {
             throw new InvalidEndOfLineException(sprintf(
                 'Row $d ended without second end-of-line byte. Expected "%s"',
                 $rowNumber,
-                $expectedEolSecondByteHexNotation
+                $this->byteHandler->getHexNotationFromString($eolSecondByte)
             ));
         }
 
         if ($eolSecondByte !== $byteAfterFirstEolByte) {
             throw new InvalidEndOfLineException(sprintf(
-                'Invalid end-of-line byte "%s at row %d". Expected "%s"',
-                $byteAfterFirstEolByte,
+                'Invalid end-of-line byte "%s" at row %d. Expected "%s"',
+                $this->byteHandler->getHexNotationFromString($byteAfterFirstEolByte),
                 $rowNumber,
-                $expectedEolSecondByteHexNotation
+                $this->byteHandler->getHexNotationFromString($eolSecondByte)
             ));
         }
     }
