@@ -19,6 +19,7 @@ class D2TxtDecoder implements D2DecoderInterface
     const SEPARATOR = 0x09;
 
     private $fileHandle;
+    private string $fileName;
 
     /**
      * Open a file based on the given path
@@ -37,6 +38,12 @@ class D2TxtDecoder implements D2DecoderInterface
         }
 
         $this->byteHandler = $byteHandler;
+        $this->fileName = basename($this->filePath);
+    }
+
+    public function getFileName(): string
+    {
+        return $this->fileName;
     }
 
     /**
@@ -91,7 +98,7 @@ class D2TxtDecoder implements D2DecoderInterface
      * @throws InvalidTxtFileException 
      * @throws InvalidEndOfLineException 
      */
-    public function isPointerAtTheEndOfLine(int $rowNumber, ByteBag $byteBag): bool
+    private function isPointerAtTheEndOfLine(int $rowNumber, ByteBag $byteBag): bool
     {
         $currentByte = $byteBag->getCurrentByte();
 

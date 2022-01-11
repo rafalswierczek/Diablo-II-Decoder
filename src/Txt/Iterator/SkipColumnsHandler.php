@@ -12,6 +12,7 @@ final class SkipColumnsHandler
 
     /**
      * @param array $columnValuesData ['colName1' => ['Expansion', 'some value'], 'colName2' => ['1', '256', '1024']]
+     * @throws InvalidValuesOfColumnToSkipException 
      */
     public function __construct(array $columnValuesData = [])
     {
@@ -23,7 +24,7 @@ final class SkipColumnsHandler
     /**
      * Add specific column name and all its values that should make whole row skipped in file iteration process
      * 
-     * @throws \RuntimeException
+     * @throws InvalidValuesOfColumnToSkipException
      */
     public function addColumnDataToSkip(string $columnName, string ...$columnValues): void
     {
@@ -34,8 +35,9 @@ final class SkipColumnsHandler
 
     /**
      * @return array ['colName1' => ['Expansion', 'some value'], 'colName2' => ['1', '256', '1024']]
+     * @throws \RuntimeException
      */
-    public function getAllColumnValues(): array
+    public function getSkipColumnValues(): array
     {
         if (empty($this->columnValuesData)) {
             throw new \RuntimeException('Found empty column values. You must specify it through constructor or addColumnDataToSkip method!');

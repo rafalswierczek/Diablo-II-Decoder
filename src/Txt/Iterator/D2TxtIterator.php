@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace rafalswierczek\D2Decoder\Txt\Iterator;
 
-// use rafalswierczek\D2Decoder\Txt\D2TxtValidator;
+// use rafalswierczek\D2Decoder\Txt\Iterator\{TxtHeader, TxtRow};
+// use rafalswierczek\D2Decoder\Txt\{D2TxtDecoder, D2TxtValidator};
 // use rafalswierczek\D2Decoder\Txt\Exception\InvalidTxtFileException;
 
 // final class D2TxtIterator implements \Iterator
@@ -19,22 +20,24 @@ namespace rafalswierczek\D2Decoder\Txt\Iterator;
 
 //     /**
 //      * @throws InvalidTxtFileException
+//      * @throws \RuntimeException
 //      */
-//     public function __construct(array $columnNames, D2TxtValidator $d2TxtValidator, ?SkipColumnsHandler $skipColumnsHandler = null)
-//     {
-//         $this->fileName = basename($filePath);
-
-        
-
-//         $this->fileHeader = $this->getHeader();
-//         $this->fileName = $fileName;
-//         $this->columnNames = $columnNames;
-//         $this->tableValidator = $tableValidator;
-//         $this->skipColumnValues = $skipColumnValues;
+//     public function __construct(
+//         array $expectedColumnNames,
+//         D2TxtDecoder $d2TxtDecoder,
+//         D2TxtValidator $d2TxtValidator,
+//         ?SkipColumnsHandler $skipColumnsHandler = null
+//     ) {
+//         $this->fileName = $d2TxtDecoder->getFileName();
+//         $this->expectedColumnNames = $expectedColumnNames;
+//         $this->d2TxtValidator = $d2TxtValidator;
+//         $this->skipColumnValues = isset($skipColumnsHandler) ? $skipColumnsHandler->getSkipColumnValues() : [];
 //     }
 
 //     public function rewind(): void
 //     {
+//         $this->header = new TxtHeader();
+//         $this->header->
 //         $this->invalidHeader = false;
 
 //         if (!$this->tableValidator->headerHasDuplicateColumnNames($this->fileHeader, $this->fileName)) {
