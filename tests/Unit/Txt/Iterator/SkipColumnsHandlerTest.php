@@ -17,7 +17,7 @@ final class SkipColumnsHandlerTest extends TestCase
     {
         $skipColumnsHandler = new SkipColumnsHandler($columnValuesData);
 
-        $columnValue = $skipColumnsHandler->getAllColumnValues()['column_name 2 '][2];
+        $columnValue = $skipColumnsHandler->getSkipColumnValues()['column_name 2 '][2];
 
         $this->assertEquals($expectedValue, $columnValue);
     }
@@ -33,17 +33,17 @@ final class SkipColumnsHandlerTest extends TestCase
             $skipColumnsHandler->addColumnDataToSkip($columnName, ...$columnValues);
         }
 
-        $columnValue = $skipColumnsHandler->getAllColumnValues()['column_name 2 '][2];
+        $columnValue = $skipColumnsHandler->getSkipColumnValues()['column_name 2 '][2];
 
         $this->assertEquals($expectedValue, $columnValue);
     }
 
-    public function testGetAllColumnValuesReturnsEmptyArray()
+    public function testGetSkipColumnValuesReturnsEmptyArray()
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Found empty column values. You must specify it through constructor or addColumnDataToSkip method!');
 
-        (new SkipColumnsHandler())->getAllColumnValues();
+        (new SkipColumnsHandler())->getSkipColumnValues();
     }
 
     public function testValuesAreNotEmptyStringsWhenSkipColumnsHandlerIsCreated()

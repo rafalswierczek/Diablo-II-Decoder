@@ -38,7 +38,7 @@ class D2TxtDecoder implements D2DecoderInterface
         }
 
         $this->byteHandler = $byteHandler;
-        $this->fileName = basename($this->filePath);
+        $this->fileName = basename($filePath);
     }
 
     public function getFileName(): string
