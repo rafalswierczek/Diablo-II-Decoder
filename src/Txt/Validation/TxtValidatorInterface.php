@@ -12,7 +12,7 @@ use rafalswierczek\D2Decoder\Txt\Exception\{
     InvalidRowColumnNumber
 };
 
-interface D2TxtValidatorInterface
+interface TxtValidatorInterface
 {
     /**
      * Validate Diablo II excel file
@@ -32,5 +32,5 @@ interface D2TxtValidatorInterface
     /**
      * @throws InvalidRowColumnNumber
      */
-    public function validateRow(array $rowArray, int $rowNumber, array $headerColumnNames): void;
+    public function validateRow(array $rowArray, array $headerColumnNames, int $rowNumber): void;
 }

@@ -13,11 +13,12 @@ use rafalswierczek\D2Decoder\Txt\Exception\{
     InvalidTxtFileException
 };
 
-class D2TxtDecoder implements D2DecoderInterface
+class TxtDecoder implements D2DecoderInterface
 {
     const EOL = ['CR' => 0x0D, 'LF' => 0x0A];
     const SEPARATOR = 0x09;
 
+    private int $rowNumber;
     private $fileHandle;
     private string $fileName;
 
@@ -37,6 +38,7 @@ class D2TxtDecoder implements D2DecoderInterface
             throw new TxtFileCannotBeOpenedException();
         }
 
+        $this->rowNumber = 1;
         $this->byteHandler = $byteHandler;
         $this->fileName = basename($filePath);
     }
@@ -49,30 +51,35 @@ class D2TxtDecoder implements D2DecoderInterface
     /**
      * Read specific row and return it as array and move pointer to the next row
      * 
-     * @param int $rowNumber Value that specifies which row should be parsed started from 1 and ended at n (n is the number of all rows)
+     * @param int $rowNumber Value that specifies which row should be parsed started from 1 and ended at n (n is the number of all rows).
+     *  If $rowNumber is specified then next calls of decodeRow will result in an increment of specified $rowNumber.
+     *  If $rowNumber is not specified then next calls of decodeRow will result in an increment of default $rowNumber which is 1. 
      * @return array 
      * @throws \RuntimeException 
      * @throws InvalidTxtFileException 
      * @throws InvalidEndOfLineException 
      */
-    public function decodeRow(int $rowNumber = 1): array
+    public function decodeRow(?int $rowNumber = null): array
     {
         $rowElement = '';
         $rowArray = [];
         $byteBag = new ByteBag($this->byteHandler, self::EOL['CR'], self::EOL['LF'], self::SEPARATOR);
 
-        $this->throwIfRowNumberIsZeroOrLess($rowNumber);
-
-        $this->movePointerToSpecificRow($rowNumber);
+        if (null !== $rowNumber) {
+            $this->rowNumber = $rowNumber; // if there is a need for specific row number then overwrite local one
+            $this->throwIfRowNumberIsInvalid($this->rowNumber);
+            $this->movePointerToSpecificRow($this->rowNumber);
+            
+        }
 
         while (true) {
             $currentChar = fread($this->fileHandle, 1);
             
-            $this->throwIfThereAreNoBytesLeft($currentChar, $rowNumber);
+            $this->throwIfThereAreNoBytesLeft($currentChar, $this->rowNumber);
 
             $byteBag->setCurrentByte(hexdec(bin2hex($currentChar)));
             
-            if ($this->isPointerAtTheEndOfLine($rowNumber, $byteBag)) {
+            if ($this->isPointerAtTheEndOfLine($this->rowNumber, $byteBag)) {
                 $rowArray[] = $rowElement;
                 break;
             } else {
@@ -86,6 +93,8 @@ class D2TxtDecoder implements D2DecoderInterface
                 }
             }
         }
+
+        $this->rowNumber++;
 
         return $rowArray;
     }
@@ -218,7 +227,7 @@ class D2TxtDecoder implements D2DecoderInterface
      * @return void 
      * @throws \RuntimeException 
      */
-    private function throwIfRowNumberIsZeroOrLess(int $rowNumber): void
+    private function throwIfRowNumberIsInvalid(int $rowNumber): void
     {
         if (0 >= $rowNumber) {
             throw new \RuntimeException('Row number must be greater than 0');

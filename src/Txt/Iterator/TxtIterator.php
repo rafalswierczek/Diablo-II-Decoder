@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace rafalswierczek\D2Decoder\Txt\Iterator;
 
-// use rafalswierczek\D2Decoder\Txt\Iterator\{TxtHeader, TxtRow};
-// use rafalswierczek\D2Decoder\Txt\{D2TxtDecoder, D2TxtValidator};
+// use rafalswierczek\D2Decoder\Txt\Iterator\{TxtTable, TxtHeader, TxtRow};
+// use rafalswierczek\D2Decoder\Txt\{TxtDecoder, TxtValidator};
 // use rafalswierczek\D2Decoder\Txt\Exception\InvalidTxtFileException;
 
-// final class D2TxtIterator implements \Iterator
+// final class TxtIterator implements \Iterator
 // {
 //     public array $table;
 //     private ?array $row;

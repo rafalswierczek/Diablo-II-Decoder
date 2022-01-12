@@ -13,7 +13,7 @@ use rafalswierczek\D2Decoder\Txt\Exception\{
     InvalidRowColumnNumber
 };
 
-final class D2TxtValidator implements D2TxtValidatorInterface
+final class TxtValidator implements TxtValidatorInterface
 {
     private int $maxFileSizeInKiB;
 
@@ -51,9 +51,9 @@ final class D2TxtValidator implements D2TxtValidatorInterface
         }
     }
 
-    public function validateHeader(array $headerColumnNames, array $expectedColumnNames): void
+    public function validateHeader(array $columnNames, array $expectedColumnNames): void
     {
-        if (!empty($duplicateColumnNames = $this->getDuplicateValues($headerColumnNames))) {
+        if (!empty($duplicateColumnNames = $this->getDuplicateValues($columnNames))) {
             throw new DuplicateColumnNameException(sprintf(
                 'Found following duplicate column names in excel file header: %s',
                 implode(', ', $duplicateColumnNames)
@@ -63,7 +63,7 @@ final class D2TxtValidator implements D2TxtValidatorInterface
         $missingColumnNames = [];
         
         foreach ($expectedColumnNames as $expectedColumnName) {
-            if (!in_array($expectedColumnName, $headerColumnNames)) {
+            if (!in_array($expectedColumnName, $columnNames)) {
                 $missingColumnNames[] = $expectedColumnName;
             }
         }
@@ -76,9 +76,9 @@ final class D2TxtValidator implements D2TxtValidatorInterface
         }
     }
 
-    public function validateRow(array $rowArray, int $rowNumber, array $headerColumnNames): void
+    public function validateRow(array $rowArray, array $columnNames, int $rowNumber): void
     {
-        if (count($headerColumnNames) !== count($rowArray)) {
+        if (count($columnNames) !== count($rowArray)) {
             throw new InvalidRowColumnNumber(sprintf(
                 'Found invalid column number in row $d',
                 $rowNumber

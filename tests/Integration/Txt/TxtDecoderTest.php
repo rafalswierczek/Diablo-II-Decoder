@@ -9,10 +9,10 @@ use rafalswierczek\D2Decoder\Txt\Exception\{
     InvalidTxtFileException,
     NotReadableTxtFileException
 };
-use rafalswierczek\D2Decoder\Txt\D2TxtDecoder;
+use rafalswierczek\D2Decoder\Txt\TxtDecoder;
 use PHPUnit\Framework\TestCase;
 
-class D2TxtDecoderTest extends TestCase
+class TxtDecoderTest extends TestCase
 {
     private string $filePath;
 
@@ -25,14 +25,14 @@ class D2TxtDecoderTest extends TestCase
     {
         $this->expectException(NotReadableTxtFileException::class);
         
-        new D2TxtDecoder('', new ByteHandler());
+        new TxtDecoder('', new ByteHandler());
     }
 
     public function testDecodeFirstRowAndReturnArrayOfEveryColumn()
     {
         $headerRowData = $this->getHeaderRow();
 
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath, new ByteHandler());
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
         
         $this->assertEquals($headerRowData['row'], $d2TxtDecoder->decodeRow());
     }
@@ -41,9 +41,20 @@ class D2TxtDecoderTest extends TestCase
     {
         $exampleRowData = $this->getExampleRow();
 
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath, new ByteHandler());
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
         
         $this->assertEquals($exampleRowData['row'], $d2TxtDecoder->decodeRow($exampleRowData['rowNumber']));
+    }
+
+    public function testDecodeRowTwiceAndReturnArrayOfEveryColumn()
+    {
+        $exampleRowData = $this->getExampleRow();
+        $exampleNextRowData = $this->getExampleNextRow();
+
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
+        
+        $this->assertEquals($exampleRowData['row'], $d2TxtDecoder->decodeRow($exampleRowData['rowNumber']));
+        $this->assertEquals($exampleNextRowData['row'], $d2TxtDecoder->decodeRow());
     }
 
     public function testDecodeRowForEmptyFile()
@@ -58,7 +69,7 @@ class D2TxtDecoderTest extends TestCase
             $rowNumber
         ));
 
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath, new ByteHandler());
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
         $d2TxtDecoder->decodeRow($rowNumber);
     }
 
@@ -69,7 +80,7 @@ class D2TxtDecoderTest extends TestCase
         $this->expectException(InvalidTxtFileException::class);
         $this->expectExceptionMessage('File format is invalid because there is no value after separator at row 1');
 
-        $d2TxtDecoder = new D2TxtDecoder($this->filePath, new ByteHandler());
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
         $d2TxtDecoder->decodeRow();
     }
 
@@ -414,6 +425,178 @@ class D2TxtDecoderTest extends TestCase
              'tsp',
              '1',
              '0'
+        ]];
+    }
+
+    private function getExampleNextRow(): array
+    {
+        return ['rowNumber' => 52, 'row' => [
+            'Glaive',
+            'jave',
+            '',
+            'glv',
+            'glv',
+            'glv',
+            '0',
+            '',
+            '4',
+            '1',
+            '5',
+            '17',
+            '',
+            '',
+            '',
+            '',
+            '16',
+            '22',
+            '15',
+            '2',
+            '20',
+            '75',
+            '75',
+            '52',
+            '35',
+            '5',
+            '',
+            '23',
+            '0',
+            '36',
+            '14828',
+            '',
+            '',
+            'jav',
+            'glv',
+            '9gl',
+            '7gl',
+            '1ht',
+            '1ht',
+            '5',
+            '1ht',
+            '1',
+            '4',
+            '1',
+            '15',
+            '40',
+            '40',
+            'flpglv',
+            'invglv',
+            '',
+            '',
+            '',
+            '',
+            '0',
+            'primarily thrown',
+            '0',
+            'item_javelins',
+            '12',
+            'item_javelins',
+            '0',
+            '0',
+            '5',
+            '0',
+            '0',
+            '0',
+            '',
+            '',
+            '37',
+            '7',
+            '2',
+            '0',
+            '3',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '2',
+            '2',
+            '30',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '',
+            '',
+            '20',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '1',
+            '1',
+            '',
+            '',
+            '255',
+            '1',
+            '2',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '1',
+            '1',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '',
+            '',
+            '255',
+            '',
+            '',
+            '1',
+            '1',
+            '20',
+            '1',
+            '1',
+            '1',
+            '1',
+            '20',
+            '',
+            '',
+            '1',
+            '2',
+            '0',
+            'xxx',
+            'xxx',
+            '1',
+            '0'
         ]];
     }
 }
