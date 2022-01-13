@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace rafalswierczek\D2Decoder\Txt\Iterator;
 
 // use rafalswierczek\D2Decoder\Txt\Iterator\{TxtTable, TxtHeader, TxtRow};
-// use rafalswierczek\D2Decoder\Txt\{TxtDecoder, TxtValidator};
 // use rafalswierczek\D2Decoder\Txt\Exception\InvalidTxtFileException;
+// use rafalswierczek\D2Decoder\Txt\Validation\TxtValidator;
+// use rafalswierczek\D2Decoder\Txt\TxtDecoder;
 
 // final class TxtIterator implements \Iterator
 // {
-//     public array $table;
-//     private ?array $row;
-//     private array $fileHeader;
-//     private string $fileName;
-//     private array $columnNames;
+//     public TxtTable $table;
+//     private TxtRow $row;
+//     private TxtHeader $header;
+//     private TxtDecoder $decoder;
+//     private TxtValidator $validator;
+//     private array $expectedColumnNames;
 //     private array $skipColumnValues;
-//     private bool $invalidHeader;
 
 //     /**
 //      * @throws InvalidTxtFileException
@@ -24,38 +25,27 @@ namespace rafalswierczek\D2Decoder\Txt\Iterator;
 //      */
 //     public function __construct(
 //         array $expectedColumnNames,
-//         D2TxtDecoder $d2TxtDecoder,
-//         D2TxtValidator $d2TxtValidator,
+//         TxtDecoder $txtDecoder,
+//         TxtValidator $txtValidator,
 //         ?SkipColumnsHandler $skipColumnsHandler = null
 //     ) {
-//         $this->fileName = $d2TxtDecoder->getFileName();
 //         $this->expectedColumnNames = $expectedColumnNames;
-//         $this->d2TxtValidator = $d2TxtValidator;
+//         $this->fileName = $txtDecoder->getFileName();
+//         $this->decoder = $txtDecoder;
+//         $this->validator = $txtValidator;
 //         $this->skipColumnValues = isset($skipColumnsHandler) ? $skipColumnsHandler->getSkipColumnValues() : [];
 //     }
 
 //     public function rewind(): void
 //     {
-//         $this->header = new TxtHeader();
-//         $this->header->
-//         $this->invalidHeader = false;
+//         $rowArray = $this->decoder->decodeRow(1);
 
-//         if (!$this->tableValidator->headerHasDuplicateColumnNames($this->fileHeader, $this->fileName)) {
-//             if (!$this->tableValidator->headerHasAllNecessaryColumns($this->fileHeader, $this->columnNames, $this->fileName)) {
-//                 $this->invalidHeader = true;
-//             }
-//         } else {
-//             $this->invalidHeader = true;
-//         }
-
-//         reset($this->fileLines);
+//         $this->header = new TxtHeader($rowArray, $this->expectedColumnNames, $this->validator);
 
 //         $this->next(); // skip header and continue all useless rows until first useful row
-
-//         $this->invalidHeader = false;
 //     }
 
-//     public function current(): array
+//     public function current(): TxtRow
 //     {
 //         $this->table[] = $this->row;
 
@@ -70,7 +60,7 @@ namespace rafalswierczek\D2Decoder\Txt\Iterator;
 //     public function next(): void
 //     {
 //         do {
-//             next($this->fileLines);
+//             $this->row = $this->decoder->decodeRow();
 //         } while ($this->continue());
 //     }
 
@@ -92,8 +82,6 @@ namespace rafalswierczek\D2Decoder\Txt\Iterator;
 
 //     private function continue(): bool
 //     {
-//         $this->row = $this->getRow();
-
 //         if (null === $this->row) {
 //             return false;
 //         }
@@ -105,27 +93,5 @@ namespace rafalswierczek\D2Decoder\Txt\Iterator;
 //         }
 
 //         return false;
-//     }
-
-//     private function getRow(): ?array
-//     {
-//         if ((false === $current = current($this->fileLines)) || empty($current)) { // end of file
-//             return null;
-//         }
-            
-//         $row = array_map('trim', explode("	", $current)); // explode returns always not empty array
-
-//         if ($this->tableValidator->rowHasInvalidColumnQuantity($row, $this->fileHeader, $this->fileName, (key($this->fileLines) + 1))) {
-//             return null;
-//         }
-
-//         $row = array_combine($this->fileHeader, $row);
-
-//         return $row ?: null; // null in case when header and row are valid and empty
-//     }
-
-//     private function getHeader(): array
-//     {
-//         return [];
 //     }
 // }
