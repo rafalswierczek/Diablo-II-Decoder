@@ -21,7 +21,7 @@ interface TxtValidatorInterface
      * @throws InvalidTxtFileExtensionException
      * @throws TooLargeTxtFileException
      */
-    public function validateFileMetadata(string $filePath): void;
+    public function validateFileMetadata(string $filePath, int $maxFileSizeInKiB = 1024): void;
 
     /**
      * @throws DuplicateColumnNameException

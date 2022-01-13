@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace rafalswierczek\D2Decoder\Txt\Validation;
 
-use rafalswierczek\D2Decoder\Txt\Validation\D2TxtValidatorInterface;
 use rafalswierczek\D2Decoder\Txt\Exception\{
     NotReadableTxtFileException,
     InvalidTxtFileExtensionException,
@@ -15,16 +14,6 @@ use rafalswierczek\D2Decoder\Txt\Exception\{
 
 final class TxtValidator implements TxtValidatorInterface
 {
-    private int $maxFileSizeInKiB;
-
-    /**
-     * @param int $maxFileSizeInKiB Default is 1 MiB
-     */
-    public function __construct(int $maxFileSizeInKiB = 1024)
-    {
-        $this->maxFileSizeInKiB = $maxFileSizeInKiB;
-    }
-
     /**
      * Validate Diablo II excel file
      * 
@@ -32,7 +21,7 @@ final class TxtValidator implements TxtValidatorInterface
      * @throws InvalidTxtFileExtensionException
      * @throws TooLargeTxtFileException
      */
-    public function validateFileMetadata(string $filePath): void
+    public function validateFileMetadata(string $filePath, int $maxFileSizeInKiB = 1024): void
     {
         if (!is_readable($filePath)) {
             throw new NotReadableTxtFileException(sprintf('File "%s" is not readable', $filePath));
@@ -42,11 +31,13 @@ final class TxtValidator implements TxtValidatorInterface
             throw new InvalidTxtFileExtensionException(sprintf('File "%s" has invalid extension. Expected .txt', $filePath));
         }
 
-        if ($this->maxFileSizeInKB !== filesize($filePath)) {
+        $maxFileSizeInBytes = $maxFileSizeInKiB * 1024;
+
+        if ($maxFileSizeInBytes < filesize($filePath)) {
             throw new TooLargeTxtFileException(sprintf(
                 'File "%s" is too large. Expected maximum of %s',
                 $filePath,
-                $this->formatBytes($this->maxFileSizeInKiB * 1024)
+                $this->formatBytes($maxFileSizeInBytes)
             ));
         }
     }

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace rafalswierczek\D2Decoder\TestIntegration\Txt;
 
+use rafalswierczek\D2Decoder\Txt\Validation\TxtValidator;
 use rafalswierczek\D2Decoder\ByteHandler;
 use rafalswierczek\D2Decoder\Txt\Exception\{
     InvalidTxtFileException,
-    NotReadableTxtFileException
+    NotReadableTxtFileException,
+    NoDataToReadException
 };
 use rafalswierczek\D2Decoder\Txt\TxtDecoder;
 use PHPUnit\Framework\TestCase;
@@ -15,24 +17,26 @@ use PHPUnit\Framework\TestCase;
 class TxtDecoderTest extends TestCase
 {
     private string $filePath;
+    private TxtValidator $txtValidator;
 
     protected function setUp(): void
     {
         $this->filePath = dirname(dirname(__DIR__)).'/resources/Weapons.txt';
+        $this->txtValidator = new TxtValidator();
     }
 
     public function testCreateD2TxtDecoderThrowsExceptionWhenInvalidPath()
     {
         $this->expectException(NotReadableTxtFileException::class);
         
-        new TxtDecoder('', new ByteHandler());
+        new TxtDecoder('', new ByteHandler(), $this->txtValidator);
     }
 
     public function testDecodeFirstRowAndReturnArrayOfEveryColumn()
     {
         $headerRowData = $this->getHeaderRow();
 
-        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler(), $this->txtValidator);
         
         $this->assertEquals($headerRowData['row'], $d2TxtDecoder->decodeRow());
     }
@@ -41,7 +45,7 @@ class TxtDecoderTest extends TestCase
     {
         $exampleRowData = $this->getExampleRow();
 
-        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler(), $this->txtValidator);
         
         $this->assertEquals($exampleRowData['row'], $d2TxtDecoder->decodeRow($exampleRowData['rowNumber']));
     }
@@ -51,7 +55,7 @@ class TxtDecoderTest extends TestCase
         $exampleRowData = $this->getExampleRow();
         $exampleNextRowData = $this->getExampleNextRow();
 
-        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler(), $this->txtValidator);
         
         $this->assertEquals($exampleRowData['row'], $d2TxtDecoder->decodeRow($exampleRowData['rowNumber']));
         $this->assertEquals($exampleNextRowData['row'], $d2TxtDecoder->decodeRow());
@@ -61,15 +65,26 @@ class TxtDecoderTest extends TestCase
     {
         $this->filePath = dirname(dirname(__DIR__)).'/resources/WeaponsEmpty.txt';
 
+        $this->expectException(NoDataToReadException::class);
+        $this->expectExceptionMessage('There is no data to read in txt file at row 1');
+
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler(), $this->txtValidator);
+        $d2TxtDecoder->decodeRow();
+    }
+
+    public function testDecodeRowForEmptyFileWithRowNumber()
+    {
+        $this->filePath = dirname(dirname(__DIR__)).'/resources/WeaponsEmpty.txt';
+
         $rowNumber = 33;
 
-        $this->expectException(InvalidTxtFileException::class);
+        $this->expectException(NoDataToReadException::class);
         $this->expectExceptionMessage(sprintf(
             'Found no enough data to read at row 1 of %d specified rows',
             $rowNumber
         ));
 
-        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler(), $this->txtValidator);
         $d2TxtDecoder->decodeRow($rowNumber);
     }
 
@@ -80,7 +95,7 @@ class TxtDecoderTest extends TestCase
         $this->expectException(InvalidTxtFileException::class);
         $this->expectExceptionMessage('File format is invalid because there is no value after separator at row 1');
 
-        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler());
+        $d2TxtDecoder = new TxtDecoder($this->filePath, new ByteHandler(), $this->txtValidator);
         $d2TxtDecoder->decodeRow();
     }
 
